@@ -1,16 +1,63 @@
 import React from 'react';
-import { JLPTLevel } from '../types';
+import { JLPTLevel, User } from '../types';
 import { LEVELS, LEVEL_STATS } from '../constants';
 import { Card, Badge, Button } from '../components/UI';
-import { BookOpen, Award, ChevronRight } from '../components/Icons';
+import { BookOpen, Award, ChevronRight, LogOut, Layout } from '../components/Icons';
 
 interface HomeProps {
   onSelectLevel: (level: JLPTLevel) => void;
+  onLogin?: () => void;
+  onDashboard?: () => void;
+  isLoggedIn?: boolean;
+  user?: User | null;
 }
 
-const Home: React.FC<HomeProps> = ({ onSelectLevel }) => {
+const Home: React.FC<HomeProps> = ({ 
+  onSelectLevel, 
+  onLogin, 
+  onDashboard,
+  isLoggedIn = false,
+  user 
+}) => {
   return (
     <div className="min-h-screen bg-slate-50">
+      {/* Top Navigation Bar */}
+      <nav className="bg-white border-b border-slate-200 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <BookOpen className="text-primary-600" size={24} />
+              <span className="font-bold text-lg font-jp">日本語試験</span>
+            </div>
+            <div className="flex items-center gap-3">
+              {isLoggedIn && user ? (
+                <>
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-lg">
+                    <div className="h-6 w-6 rounded-full bg-primary-600 flex items-center justify-center text-white text-xs font-semibold">
+                      {user.name.charAt(0).toUpperCase()}
+                    </div>
+                    <span className="text-sm font-medium text-slate-900">{user.name}</span>
+                  </div>
+                  <Button variant="secondary" onClick={onDashboard}>
+                    <Layout size={16} className="mr-2" />
+                    Dashboard
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button variant="ghost" onClick={onLogin}>
+                    About
+                  </Button>
+                  <Button onClick={onLogin}>
+                    Sign In
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      </nav>
+
       {/* Hero */}
       <div className="bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24 text-center">
@@ -24,12 +71,25 @@ const Home: React.FC<HomeProps> = ({ onSelectLevel }) => {
             Master the JLPT with our professional mock exams. Real-time scoring, detailed analytics, and authentic question formats for levels N5 through N1.
           </p>
           <div className="flex justify-center gap-4">
-            <Button size="lg" onClick={() => document.getElementById('levels')?.scrollIntoView({behavior: 'smooth'})}>
-              Start Practicing
-            </Button>
-            <Button size="lg" variant="secondary">
-              View Analytics
-            </Button>
+            {isLoggedIn ? (
+              <>
+                <Button size="lg" onClick={() => document.getElementById('levels')?.scrollIntoView({behavior: 'smooth'})}>
+                  Start Practicing
+                </Button>
+                <Button size="lg" variant="secondary" onClick={onDashboard}>
+                  Go to Dashboard
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button size="lg" onClick={onLogin}>
+                  Sign In to Start
+                </Button>
+                <Button size="lg" variant="secondary" onClick={() => document.getElementById('levels')?.scrollIntoView({behavior: 'smooth'})}>
+                  Browse Exams
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </div>
