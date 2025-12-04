@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Exam, Question, UserAnswer, ExamResult } from '../types';
-import { Button, Card, Badge, Progress, AudioPlayer, cn } from '../components/UI';
+import { Button, Card, cn } from '../components/UI';
 import { 
-  Clock, CheckCircle, XCircle, Menu, X, ChevronLeft, ChevronRight, AlertCircle, FileText 
+  Clock, CheckCircle, Menu, X, ChevronLeft, ChevronRight, AlertCircle, FileText 
 } from '../components/Icons';
 
 interface ExamTakeProps {
@@ -14,25 +14,23 @@ interface ExamTakeProps {
 const ExamTake: React.FC<ExamTakeProps> = ({ exam, onFinish, onExit }) => {
   // --- State ---
   const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0); // Relative to section
   const [answers, setAnswers] = useState<Record<string, UserAnswer>>({});
   const [timeLeft, setTimeLeft] = useState(exam.totalDuration * 60);
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
 
-  // Flatten questions for easier absolute indexing if needed, but we'll stick to Section > Question
+  // Refs for scrolling
+  const questionRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
   const currentSection = exam.sections[currentSectionIndex];
-  const currentQuestion = currentSection.questions[currentQuestionIndex];
-  
-  // Helper to get absolute question number
+  const totalQuestions = exam.totalQuestions;
+
+  // --- Helper to get absolute question number ---
   const getAbsoluteIndex = (sectionIdx: number, questionIdx: number) => {
     let count = 0;
     for (let i = 0; i < sectionIdx; i++) count += exam.sections[i].questions.length;
     return count + questionIdx + 1;
   };
-  
-  const absoluteCurrentIndex = getAbsoluteIndex(currentSectionIndex, currentQuestionIndex);
-  const totalQuestions = exam.totalQuestions;
 
   // --- Timer ---
   useEffect(() => {
@@ -49,6 +47,16 @@ const ExamTake: React.FC<ExamTakeProps> = ({ exam, onFinish, onExit }) => {
     return () => clearInterval(timer);
   }, []);
 
+  // Scroll to top when section changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Also scroll the main container if it's the one scrolling
+    const mainContainer = document.getElementById('main-scroll-container');
+    if (mainContainer) {
+      mainContainer.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [currentSectionIndex]);
+
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
@@ -56,38 +64,43 @@ const ExamTake: React.FC<ExamTakeProps> = ({ exam, onFinish, onExit }) => {
   };
 
   // --- Handlers ---
-  const handleOptionSelect = (optionId: string) => {
+  const handleOptionSelect = (question: Question, optionId: string) => {
     setAnswers(prev => ({
       ...prev,
-      [currentQuestion.id]: {
-        questionId: currentQuestion.id,
+      [question.id]: {
+        questionId: question.id,
         selectedOptionId: optionId,
-        isCorrect: optionId === currentQuestion.correctOptionId
+        isCorrect: optionId === question.correctOptionId
       }
     }));
   };
 
-  const handleNext = () => {
-    if (currentQuestionIndex < currentSection.questions.length - 1) {
-      setCurrentQuestionIndex(prev => prev + 1);
-    } else if (currentSectionIndex < exam.sections.length - 1) {
+  const handleNextSection = () => {
+    if (currentSectionIndex < exam.sections.length - 1) {
       setCurrentSectionIndex(prev => prev + 1);
-      setCurrentQuestionIndex(0);
     }
   };
 
-  const handlePrev = () => {
-    if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex(prev => prev - 1);
-    } else if (currentSectionIndex > 0) {
+  const handlePrevSection = () => {
+    if (currentSectionIndex > 0) {
       setCurrentSectionIndex(prev => prev - 1);
-      setCurrentQuestionIndex(exam.sections[currentSectionIndex - 1].questions.length - 1);
     }
   };
 
   const handleJumpTo = (sIdx: number, qIdx: number) => {
-    setCurrentSectionIndex(sIdx);
-    setCurrentQuestionIndex(qIdx);
+    if (sIdx !== currentSectionIndex) {
+      setCurrentSectionIndex(sIdx);
+      // Wait for render then scroll
+      setTimeout(() => {
+        const qId = exam.sections[sIdx].questions[qIdx].id;
+        const el = questionRefs.current[qId];
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 100);
+    } else {
+      const qId = exam.sections[sIdx].questions[qIdx].id;
+      const el = questionRefs.current[qId];
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
     setSidebarOpen(false);
   };
 
@@ -167,14 +180,14 @@ const ExamTake: React.FC<ExamTakeProps> = ({ exam, onFinish, onExit }) => {
                 <div className="grid grid-cols-5 gap-2">
                   {section.questions.map((q, qIdx) => {
                     const isAnswered = !!answers[q.id];
-                    const isCurrent = sIdx === currentSectionIndex && qIdx === currentQuestionIndex;
+                    const isCurrentSection = sIdx === currentSectionIndex;
                     return (
                       <button
                         key={q.id}
                         onClick={() => handleJumpTo(sIdx, qIdx)}
                         className={cn(
                           "h-10 w-10 rounded-lg text-sm font-medium flex items-center justify-center transition-all",
-                          isCurrent ? "ring-2 ring-primary-600 ring-offset-2 z-10" : "",
+                          isCurrentSection ? "ring-1 ring-primary-200" : "", // Highlight current section questions slightly
                           isAnswered 
                             ? "bg-primary-100 text-primary-700 border border-primary-200" 
                             : "bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100"
@@ -208,116 +221,131 @@ const ExamTake: React.FC<ExamTakeProps> = ({ exam, onFinish, onExit }) => {
           />
         )}
 
-        {/* Main Content Area */}
-        <main className="flex-1 overflow-y-auto p-4 lg:p-8 scroll-smooth pb-24">
-          <div className="max-w-5xl mx-auto h-full flex flex-col">
+        {/* Main Content Area - SCROLLABLE LIST */}
+        <main 
+          id="main-scroll-container"
+          className="flex-1 overflow-y-auto p-4 lg:p-8 scroll-smooth pb-24 bg-slate-50"
+        >
+          <div className="max-w-3xl mx-auto space-y-12">
             
-            {/* Split View Container */}
-            <div className="flex flex-col lg:grid lg:grid-cols-2 gap-6 lg:h-full">
-              
-              {/* Left Panel: Reading/Context (Conditional) */}
-              {currentQuestion.readingText ? (
-                 <Card className="flex flex-col h-full lg:max-h-[calc(100vh-140px)] overflow-hidden">
-                    <div className="bg-slate-50 border-b border-slate-200 p-3 flex items-center gap-2 text-sm font-medium text-slate-600">
-                      <FileText size={16} /> Reading Section
-                    </div>
-                    <div className="p-6 overflow-y-auto font-jp leading-loose text-lg text-slate-800">
-                       {currentQuestion.readingText}
-                    </div>
-                 </Card>
-              ) : currentQuestion.type === 'listening' ? (
-                 <div className="lg:col-span-2">
-                    <div className="max-w-2xl mx-auto">
-                       <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-                         <span className="bg-indigo-100 text-indigo-700 p-1.5 rounded-md"><CheckCircle size={20} /></span>
-                         Listening Section
-                       </h2>
-                       <AudioPlayer src={currentQuestion.audioUrl || ''} />
-                       {currentQuestion.imageUrl && (
-                         <img src={currentQuestion.imageUrl} alt="Context" className="mt-6 rounded-xl border border-slate-200 w-full" />
-                       )}
-                    </div>
-                 </div>
-              ) : (
-                // Spacer for layout consistency or single column centering
-                <div className="hidden lg:block lg:col-span-1 lg:order-2" /> 
-              )}
-
-              {/* Right Panel: Question & Options */}
-              <div className={cn(
-                "flex flex-col",
-                currentQuestion.readingText ? "lg:h-full lg:overflow-y-auto" : "lg:col-span-2 lg:max-w-2xl lg:mx-auto w-full"
-              )}>
-                <div className="mb-6">
-                  <span className="inline-block px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-xs font-bold tracking-wide mb-3 uppercase">
-                    Question {absoluteCurrentIndex}
-                  </span>
-                  
-                  {/* Context Sentence (for Vocab/Grammar) */}
-                  {currentQuestion.context && (
-                    <div className="text-xl font-jp mb-4 leading-relaxed" dangerouslySetInnerHTML={{__html: currentQuestion.context}} />
-                  )}
-                  
-                  <h2 className="text-lg font-medium text-slate-700 font-jp mb-6">
-                    {currentQuestion.question}
-                  </h2>
-
-                  <div className="space-y-3">
-                    {currentQuestion.options.map((opt) => {
-                      const isSelected = answers[currentQuestion.id]?.selectedOptionId === opt.id;
-                      return (
-                        <div 
-                          key={opt.id}
-                          onClick={() => handleOptionSelect(opt.id)}
-                          className={cn(
-                            "relative flex items-center p-4 rounded-xl border-2 cursor-pointer transition-all group",
-                            isSelected 
-                              ? "border-primary-600 bg-primary-50" 
-                              : "border-slate-200 bg-white hover:border-primary-200 hover:bg-slate-50"
-                          )}
-                        >
-                          <div className={cn(
-                            "h-6 w-6 rounded-full border-2 flex items-center justify-center mr-4 transition-colors",
-                            isSelected ? "border-primary-600 bg-primary-600" : "border-slate-300 group-hover:border-primary-300"
-                          )}>
-                            {isSelected && <div className="h-2.5 w-2.5 rounded-full bg-white" />}
-                          </div>
-                          <span className="text-lg font-jp text-slate-800">{opt.text}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-
+            {/* Section Title */}
+            <div className="mb-8 text-center">
+              <h2 className="text-2xl font-bold text-slate-800">{currentSection.title}</h2>
+              <p className="text-slate-500 mt-1">
+                Section {currentSectionIndex + 1} of {exam.sections.length}
+              </p>
             </div>
+
+            {currentSection.questions.map((q, qIdx) => {
+              const absoluteIndex = getAbsoluteIndex(currentSectionIndex, qIdx);
+              
+              return (
+                <div 
+                  key={q.id} 
+                  ref={el => questionRefs.current[q.id] = el}
+                  className="scroll-mt-24" // Offset for sticky header if needed, though header is fixed
+                >
+                  <Card className="p-6 md:p-8 shadow-sm hover:shadow-md transition-shadow">
+                    {/* Question Header */}
+                    <div className="flex items-start gap-4 mb-6">
+                      <span className="flex-shrink-0 flex items-center justify-center h-8 w-8 rounded-full bg-slate-100 text-slate-600 font-bold text-sm">
+                        {absoluteIndex}
+                      </span>
+                      
+                      <div className="flex-1">
+                        {/* Reading/Context (if attached to single question) */}
+                        {q.readingText && (
+                          <div className="mb-6 p-4 bg-slate-50 rounded-lg border border-slate-100 text-slate-700 font-jp leading-loose">
+                             <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
+                               <FileText size={12} /> Reading
+                             </div>
+                             {q.readingText}
+                          </div>
+                        )}
+
+                        {/* Listening Audio */}
+                        {q.type === 'listening' && q.audioUrl && (
+                          <div className="mb-6">
+                             <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
+                               <CheckCircle size={12} /> Audio
+                             </div>
+                             {/* Placeholder for Audio Player - assuming it handles its own state */}
+                             <audio controls src={q.audioUrl} className="w-full" />
+                          </div>
+                        )}
+                        
+                        {/* Context Sentence */}
+                        {q.context && (
+                           <div className="text-lg font-jp mb-3 leading-relaxed text-slate-800" dangerouslySetInnerHTML={{__html: q.context}} />
+                        )}
+
+                        {/* The Question */}
+                        <h3 className="text-lg font-medium text-slate-900 font-jp mb-2">
+                          {q.question}
+                        </h3>
+                        
+                        {/* Image */}
+                        {q.imageUrl && (
+                          <img src={q.imageUrl} alt="Question" className="mt-4 rounded-lg border border-slate-200 max-h-64 object-contain" />
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Options */}
+                    <div className="pl-12 space-y-3">
+                      {q.options.map((opt) => {
+                        const isSelected = answers[q.id]?.selectedOptionId === opt.id;
+                        return (
+                          <div 
+                            key={opt.id}
+                            onClick={() => handleOptionSelect(q, opt.id)}
+                            className={cn(
+                              "relative flex items-center p-3 rounded-lg border cursor-pointer transition-all group",
+                              isSelected 
+                                ? "border-primary-600 bg-primary-50" 
+                                : "border-slate-200 bg-white hover:border-primary-200 hover:bg-slate-50"
+                            )}
+                          >
+                            <div className={cn(
+                              "h-5 w-5 rounded-full border flex items-center justify-center mr-3 transition-colors shrink-0",
+                              isSelected ? "border-primary-600 bg-primary-600" : "border-slate-300 group-hover:border-primary-300"
+                            )}>
+                              {isSelected && <div className="h-2 w-2 rounded-full bg-white" />}
+                            </div>
+                            <span className="text-base font-jp text-slate-700">{opt.text}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </Card>
+                </div>
+              );
+            })}
+
+            {/* Section Navigation Buttons at bottom of list */}
+            <div className="flex items-center justify-between pt-8 pb-12">
+               <Button 
+                 variant="secondary" 
+                 onClick={handlePrevSection} 
+                 disabled={currentSectionIndex === 0}
+                 className="w-32"
+               >
+                 <ChevronLeft size={16} className="mr-2" /> Prev Section
+               </Button>
+
+               {currentSectionIndex === exam.sections.length - 1 ? (
+                 <Button variant="primary" onClick={handleSubmit} size="lg" className="w-40">
+                   Finish Exam
+                 </Button>
+               ) : (
+                 <Button variant="primary" onClick={handleNextSection} className="w-32">
+                   Next Section <ChevronRight size={16} className="ml-2" />
+                 </Button>
+               )}
+            </div>
+
           </div>
         </main>
-      </div>
-
-      {/* Sticky Bottom Nav (Mobile Only mostly, but styled for all) */}
-      <div className="h-16 bg-white border-t border-slate-200 flex items-center justify-between px-4 lg:px-8 z-30 shrink-0">
-        <Button 
-          variant="secondary" 
-          onClick={handlePrev} 
-          disabled={currentSectionIndex === 0 && currentQuestionIndex === 0}
-        >
-          <ChevronLeft size={16} className="mr-2" /> Prev
-        </Button>
-        
-        <span className="text-sm font-medium text-slate-500 hidden sm:block">
-          {Object.keys(answers).length} of {totalQuestions} answered
-        </span>
-
-        {absoluteCurrentIndex === totalQuestions ? (
-           <Button variant="primary" onClick={handleSubmit}>
-             Finish Exam
-           </Button>
-        ) : (
-          <Button variant="primary" onClick={handleNext}>
-            Next <ChevronRight size={16} className="ml-2" />
-          </Button>
-        )}
       </div>
 
       {/* Exit Confirmation Modal */}

@@ -1,13 +1,13 @@
-import { 
-  BookOpen, 
-  Clock, 
-  CheckCircle, 
-  XCircle, 
-  Play, 
-  Pause, 
-  ChevronLeft, 
-  ChevronRight, 
-  Menu, 
+import {
+  BookOpen,
+  Clock,
+  CheckCircle,
+  XCircle,
+  Play,
+  Pause,
+  ChevronLeft,
+  ChevronRight,
+  Menu,
   X,
   Award,
   BarChart,
@@ -34,7 +34,9 @@ import {
   Save,
   ArrowLeft,
   ArrowRight,
-  Check
+  Check,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 
 export {
@@ -73,5 +75,7 @@ export {
   Save,
   ArrowLeft,
   ArrowRight,
-  Check
+  Check,
+  ChevronDown,
+  ChevronUp
 };
