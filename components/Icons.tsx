@@ -15,7 +15,26 @@ import {
   RefreshCw,
   Headphones,
   FileText,
-  AlertCircle
+  AlertCircle,
+  Mail,
+  Lock,
+  UserCircle,
+  Users,
+  Settings,
+  LogOut,
+  PlusCircle,
+  Edit,
+  Trash2,
+  Eye,
+  Layout,
+  ClipboardList,
+  Image,
+  Upload,
+  Music,
+  Save,
+  ArrowLeft,
+  ArrowRight,
+  Check
 } from 'lucide-react';
 
 export {
@@ -35,5 +54,24 @@ export {
   RefreshCw,
   Headphones,
   FileText,
-  AlertCircle
+  AlertCircle,
+  Mail,
+  Lock,
+  UserCircle,
+  Users,
+  Settings,
+  LogOut,
+  PlusCircle,
+  Edit,
+  Trash2,
+  Eye,
+  Layout,
+  ClipboardList,
+  Image,
+  Upload,
+  Music,
+  Save,
+  ArrowLeft,
+  ArrowRight,
+  Check
 };
