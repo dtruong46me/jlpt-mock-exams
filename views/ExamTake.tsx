@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Exam, Question, UserAnswer, ExamResult } from '../types';
 import { Button, Card, cn } from '../components/UI';
-import { 
-  Clock, CheckCircle, Menu, X, ChevronLeft, ChevronRight, AlertCircle, FileText 
+import {
+  Clock, CheckCircle, Menu, X, ChevronLeft, ChevronRight, AlertCircle, FileText
 } from '../components/Icons';
+import FuriganaText from '../components/FuriganaText';
 
 interface ExamTakeProps {
   exam: Exam;
@@ -108,7 +109,7 @@ const ExamTake: React.FC<ExamTakeProps> = ({ exam, onFinish, onExit }) => {
     const correctCount = (Object.values(answers) as UserAnswer[]).filter(a => a.isCorrect).length;
     // Calculate simplified score
     const score = Math.round((correctCount / totalQuestions) * 180); // JLPT max is 180
-    
+
     const result: ExamResult = {
       examId: exam.id,
       score,
@@ -140,21 +141,21 @@ const ExamTake: React.FC<ExamTakeProps> = ({ exam, onFinish, onExit }) => {
         </div>
 
         <div className="flex items-center gap-4">
-           {/* Timer */}
-           <div className={cn(
-             "flex items-center gap-2 font-mono text-lg font-medium px-3 py-1 rounded-md transition-colors",
-             timeLeft < 300 ? "bg-red-50 text-red-600 animate-pulse" : "bg-slate-100 text-slate-700"
-           )}>
-             <Clock size={16} />
-             {formatTime(timeLeft)}
-           </div>
-           
-           <Button variant="secondary" size="sm" className="hidden sm:flex" onClick={() => setShowExitConfirm(true)}>
-             Exit
-           </Button>
+          {/* Timer */}
+          <div className={cn(
+            "flex items-center gap-2 font-mono text-lg font-medium px-3 py-1 rounded-md transition-colors",
+            timeLeft < 300 ? "bg-red-50 text-red-600 animate-pulse" : "bg-slate-100 text-slate-700"
+          )}>
+            <Clock size={16} />
+            {formatTime(timeLeft)}
+          </div>
+
+          <Button variant="secondary" size="sm" className="hidden sm:flex" onClick={() => setShowExitConfirm(true)}>
+            Exit
+          </Button>
         </div>
       </header>
-      
+
       {/* Progress Line */}
       <div className="h-1 bg-slate-200 shrink-0">
         <div className="h-full bg-primary-600 transition-all duration-300" style={{ width: `${progressPercentage}%` }} />
@@ -170,7 +171,7 @@ const ExamTake: React.FC<ExamTakeProps> = ({ exam, onFinish, onExit }) => {
             <span className="font-bold">Question Palette</span>
             <button onClick={() => setSidebarOpen(false)}><X size={20} /></button>
           </div>
-          
+
           <div className="p-4 space-y-6">
             {exam.sections.map((section, sIdx) => (
               <div key={section.id}>
@@ -188,8 +189,8 @@ const ExamTake: React.FC<ExamTakeProps> = ({ exam, onFinish, onExit }) => {
                         className={cn(
                           "h-10 w-10 rounded-lg text-sm font-medium flex items-center justify-center transition-all",
                           isCurrentSection ? "ring-1 ring-primary-200" : "", // Highlight current section questions slightly
-                          isAnswered 
-                            ? "bg-primary-100 text-primary-700 border border-primary-200" 
+                          isAnswered
+                            ? "bg-primary-100 text-primary-700 border border-primary-200"
                             : "bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100"
                         )}
                       >
@@ -201,33 +202,33 @@ const ExamTake: React.FC<ExamTakeProps> = ({ exam, onFinish, onExit }) => {
               </div>
             ))}
           </div>
-          
+
           <div className="p-4 mt-auto border-t border-slate-100">
-             <div className="grid grid-cols-2 gap-2 text-xs text-slate-500 mb-4">
-               <div className="flex items-center gap-2"><div className="w-3 h-3 bg-primary-100 border border-primary-200 rounded"></div> Answered</div>
-               <div className="flex items-center gap-2"><div className="w-3 h-3 bg-slate-50 border border-slate-200 rounded"></div> Unanswered</div>
-             </div>
-             <Button variant="primary" className="w-full" onClick={handleSubmit}>
-               Submit Exam
-             </Button>
+            <div className="grid grid-cols-2 gap-2 text-xs text-slate-500 mb-4">
+              <div className="flex items-center gap-2"><div className="w-3 h-3 bg-primary-100 border border-primary-200 rounded"></div> Answered</div>
+              <div className="flex items-center gap-2"><div className="w-3 h-3 bg-slate-50 border border-slate-200 rounded"></div> Unanswered</div>
+            </div>
+            <Button variant="primary" className="w-full" onClick={handleSubmit}>
+              Submit Exam
+            </Button>
           </div>
         </aside>
 
         {/* Backdrop for mobile sidebar */}
         {isSidebarOpen && (
-          <div 
+          <div
             className="absolute inset-0 bg-black/20 z-20 lg:hidden"
             onClick={() => setSidebarOpen(false)}
           />
         )}
 
         {/* Main Content Area - SCROLLABLE LIST */}
-        <main 
+        <main
           id="main-scroll-container"
           className="flex-1 overflow-y-auto p-4 lg:p-8 scroll-smooth pb-24 bg-slate-50"
         >
           <div className="max-w-3xl mx-auto space-y-12">
-            
+
             {/* Section Title */}
             <div className="mb-8 text-center">
               <h2 className="text-2xl font-bold text-slate-800">{currentSection.title}</h2>
@@ -238,10 +239,10 @@ const ExamTake: React.FC<ExamTakeProps> = ({ exam, onFinish, onExit }) => {
 
             {currentSection.questions.map((q, qIdx) => {
               const absoluteIndex = getAbsoluteIndex(currentSectionIndex, qIdx);
-              
+
               return (
-                <div 
-                  key={q.id} 
+                <div
+                  key={q.id}
                   ref={el => questionRefs.current[q.id] = el}
                   className="scroll-mt-24" // Offset for sticky header if needed, though header is fixed
                 >
@@ -251,39 +252,41 @@ const ExamTake: React.FC<ExamTakeProps> = ({ exam, onFinish, onExit }) => {
                       <span className="flex-shrink-0 flex items-center justify-center h-8 w-8 rounded-full bg-slate-100 text-slate-600 font-bold text-sm">
                         {absoluteIndex}
                       </span>
-                      
+
                       <div className="flex-1">
                         {/* Reading/Context (if attached to single question) */}
                         {q.readingText && (
                           <div className="mb-6 p-4 bg-slate-50 rounded-lg border border-slate-100 text-slate-700 font-jp leading-loose">
-                             <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
-                               <FileText size={12} /> Reading
-                             </div>
-                             {q.readingText}
+                            <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
+                              <FileText size={12} /> Reading
+                            </div>
+                            <FuriganaText text={q.readingText} />
                           </div>
                         )}
 
                         {/* Listening Audio */}
                         {q.type === 'listening' && q.audioUrl && (
                           <div className="mb-6">
-                             <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
-                               <CheckCircle size={12} /> Audio
-                             </div>
-                             {/* Placeholder for Audio Player - assuming it handles its own state */}
-                             <audio controls src={q.audioUrl} className="w-full" />
+                            <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
+                              <CheckCircle size={12} /> Audio
+                            </div>
+                            {/* Placeholder for Audio Player - assuming it handles its own state */}
+                            <audio controls src={q.audioUrl} className="w-full" />
                           </div>
                         )}
-                        
+
                         {/* Context Sentence */}
                         {q.context && (
-                           <div className="text-lg font-jp mb-3 leading-relaxed text-slate-800" dangerouslySetInnerHTML={{__html: q.context}} />
+                          <div className="text-lg font-jp mb-3 leading-relaxed text-slate-800">
+                            <FuriganaText text={q.context} />
+                          </div>
                         )}
 
                         {/* The Question */}
                         <h3 className="text-lg font-medium text-slate-900 font-jp mb-2">
-                          {q.question}
+                          <FuriganaText text={q.question} />
                         </h3>
-                        
+
                         {/* Image */}
                         {q.imageUrl && (
                           <img src={q.imageUrl} alt="Question" className="mt-4 rounded-lg border border-slate-200 max-h-64 object-contain" />
@@ -296,13 +299,13 @@ const ExamTake: React.FC<ExamTakeProps> = ({ exam, onFinish, onExit }) => {
                       {q.options.map((opt) => {
                         const isSelected = answers[q.id]?.selectedOptionId === opt.id;
                         return (
-                          <div 
+                          <div
                             key={opt.id}
                             onClick={() => handleOptionSelect(q, opt.id)}
                             className={cn(
                               "relative flex items-center p-3 rounded-lg border cursor-pointer transition-all group",
-                              isSelected 
-                                ? "border-primary-600 bg-primary-50" 
+                              isSelected
+                                ? "border-primary-600 bg-primary-50"
                                 : "border-slate-200 bg-white hover:border-primary-200 hover:bg-slate-50"
                             )}
                           >
@@ -312,7 +315,9 @@ const ExamTake: React.FC<ExamTakeProps> = ({ exam, onFinish, onExit }) => {
                             )}>
                               {isSelected && <div className="h-2 w-2 rounded-full bg-white" />}
                             </div>
-                            <span className="text-base font-jp text-slate-700">{opt.text}</span>
+                            <span className="text-base font-jp text-slate-700">
+                              <FuriganaText text={opt.text} />
+                            </span>
                           </div>
                         );
                       })}
@@ -324,24 +329,24 @@ const ExamTake: React.FC<ExamTakeProps> = ({ exam, onFinish, onExit }) => {
 
             {/* Section Navigation Buttons at bottom of list */}
             <div className="flex items-center justify-between pt-8 pb-12">
-               <Button 
-                 variant="secondary" 
-                 onClick={handlePrevSection} 
-                 disabled={currentSectionIndex === 0}
-                 className="w-32"
-               >
-                 <ChevronLeft size={16} className="mr-2" /> Prev Section
-               </Button>
+              <Button
+                variant="secondary"
+                onClick={handlePrevSection}
+                disabled={currentSectionIndex === 0}
+                className="w-32"
+              >
+                <ChevronLeft size={16} className="mr-2" /> Prev Section
+              </Button>
 
-               {currentSectionIndex === exam.sections.length - 1 ? (
-                 <Button variant="primary" onClick={handleSubmit} size="lg" className="w-40">
-                   Finish Exam
-                 </Button>
-               ) : (
-                 <Button variant="primary" onClick={handleNextSection} className="w-32">
-                   Next Section <ChevronRight size={16} className="ml-2" />
-                 </Button>
-               )}
+              {currentSectionIndex === exam.sections.length - 1 ? (
+                <Button variant="primary" onClick={handleSubmit} size="lg" className="w-40">
+                  Finish Exam
+                </Button>
+              ) : (
+                <Button variant="primary" onClick={handleNextSection} className="w-32">
+                  Next Section <ChevronRight size={16} className="ml-2" />
+                </Button>
+              )}
             </div>
 
           </div>

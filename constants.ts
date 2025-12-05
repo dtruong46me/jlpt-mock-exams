@@ -7,8 +7,8 @@ const createMockQuestion = (id: string, type: any, num: number): any => {
   if (type === 'vocabulary') {
     return {
       id, type, number: num,
-      context: "この漢字の<u>読み方</u>を教えてください。",
-      question: "「準備」の読み方はどれですか。",
+      context: "この{漢字|かんじ}の{読み方|よみかた}を{教|おし}えてください。",
+      question: "「{準備|じゅんび}」の{読|よ}み{方|かた}はどれですか。",
       options: [
         { id: 'a', text: 'じゅんび' },
         { id: 'b', text: 'せんび' },
@@ -16,19 +16,19 @@ const createMockQuestion = (id: string, type: any, num: number): any => {
         { id: 'd', text: 'そなえ' },
       ],
       correctOptionId: 'a',
-      explanation: "「準備」は「じゅんび」と読みます。Translation: Preparation."
+      explanation: "「{準備|じゅんび}」は「じゅんび」と{読|よ}みます。Translation: Preparation."
     };
   }
   if (type === 'grammar') {
     return {
       id, type, number: num,
-      context: "明日、雨が______、ピクニックに行きません。",
-      question: "（　　）に入れるのに最もよいものを一つ選びなさい。",
+      context: "{明日|あした}、{雨|あめ}が______、ピクニックに{行|い}きません。",
+      question: "（　　）に{入|い}れるのに{最|もっと}もよいものを{一|ひと}つ{選|えら}びなさい。",
       options: [
-        { id: 'a', text: '降ったら' },
-        { id: 'b', text: '降れば' },
-        { id: 'c', text: '降ると' },
-        { id: 'd', text: '降って' },
+        { id: 'a', text: '{降|ふ}ったら' },
+        { id: 'b', text: '{降|ふ}れば' },
+        { id: 'c', text: '{降|ふ}ると' },
+        { id: 'd', text: '{降|ふ}って' },
       ],
       correctOptionId: 'a',
       explanation: "Conditional 'tara' is best here for specific future condition."
@@ -37,29 +37,29 @@ const createMockQuestion = (id: string, type: any, num: number): any => {
   if (type === 'reading') {
     return {
       id, type, number: num,
-      readingText: "日本の夏はとても蒸し暑いです。多くの人がエアコンを使いますが、最近は電気代が高くなっています。それで、昔ながらの「扇風機」や「風鈴」を使う人も増えています。自然の風を感じることは、体にも良いと言われています。",
-      question: "なぜ扇風機を使う人が増えていますか。",
+      readingText: "{日本|にほん}の{夏|なつ}はとても{蒸|む}し{暑|あつ}いです。{多|おお}くの{人|ひと}がエアコンを{使|つか}いますが、{最近|さいきん}は{電気代|でんきだい}が{高|たか}くなっています。それで、{昔|むかし}ながらの「{扇風機|せんぷうき}」や「{風鈴|ふうりん}」を{使|つか}う{人|ひと}も{増|ふ}えています。{自然|しぜん}の{風|かぜ}を{感|かん}じることは、{体|からだ}にも{良|よ}いと{言|い}われています。",
+      question: "なぜ{扇風機|せんぷうき}を{使|つか}う{人|ひと}が{増|ふ}えていますか。",
       options: [
-        { id: 'a', text: 'エアコンが壊れやすいから' },
-        { id: 'b', text: '電気代が高くなっているから' },
-        { id: 'c', text: '扇風機の方が涼しいから' },
-        { id: 'd', text: '風鈴が好きだから' },
+        { id: 'a', text: 'エアコンが{壊|こわ}れやすいから' },
+        { id: 'b', text: '{電気代|でんきだい}が{高|たか}くなっているから' },
+        { id: 'c', text: '{扇風機|せんぷうき}の{方|ほう}が{涼|すず}しいから' },
+        { id: 'd', text: '{風鈴|ふうりん}が{好|す}きだから' },
       ],
       correctOptionId: 'b',
-      explanation: "The text says 'recently electricity costs are becoming high' (最近は電気代が高くなっています)."
+      explanation: "The text says 'recently electricity costs are becoming high' ({最近|さいきん}は{電気代|でんきだい}が{高|たか}くなっています)."
     };
   }
   if (type === 'listening') {
     return {
       id, type, number: num,
       audioUrl: "https://www2.cs.uic.edu/~i101/SoundFiles/BabyElephantWalk60.wav", // Placeholder
-      question: "男の人はこれから何をしますか。",
+      question: "{男|おとこ}の{人|ひと}はこれから{何|なに}をしますか。",
       imageUrl: "https://picsum.photos/400/200",
       options: [
-        { id: 'a', text: '資料をコピーする' },
-        { id: 'b', text: '会議室を予約する' },
-        { id: 'c', text: '部長に電話する' },
-        { id: 'd', text: 'コーヒーを買う' },
+        { id: 'a', text: '{資料|しりょう}をコピーする' },
+        { id: 'b', text: '{会議室|かいぎしつ}を{予約|よやく}する' },
+        { id: 'c', text: '{部長|ぶちょう}に{電話|でんわ}する' },
+        { id: 'd', text: 'コーヒーを{買|か}う' },
       ],
       correctOptionId: 'a',
       explanation: "In the dialogue, the boss asks the man to prepare the documents first."
@@ -87,8 +87,8 @@ export const MOCK_EXAMS: Exam[] = [
         title: '言語知識 (文法) ・ 読解',
         durationMinutes: 70,
         questions: [
-            ...Array.from({ length: 3 }).map((_, i) => createMockQuestion(`g-${i}`, 'grammar', i + 6)),
-            ...Array.from({ length: 3 }).map((_, i) => createMockQuestion(`r-${i}`, 'reading', i + 9))
+          ...Array.from({ length: 3 }).map((_, i) => createMockQuestion(`g-${i}`, 'grammar', i + 6)),
+          ...Array.from({ length: 3 }).map((_, i) => createMockQuestion(`r-${i}`, 'reading', i + 9))
         ]
       },
       {

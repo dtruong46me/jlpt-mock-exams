@@ -5,6 +5,7 @@ import {
   CheckCircle, XCircle, RefreshCw, Home, ChevronRight, BarChart,
   Menu, X, ChevronDown, ChevronUp, FileText
 } from '../components/Icons';
+import FuriganaText from '../components/FuriganaText';
 
 interface ResultProps {
   result: ExamResult;
@@ -219,18 +220,20 @@ const Result: React.FC<ResultProps> = ({ result, exam, onRetake, onHome }) => {
                                   <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
                                     <FileText size={12} /> Reading
                                   </div>
-                                  {q.readingText}
+                                  <FuriganaText text={q.readingText} />
                                 </div>
                               )}
 
                               {/* Context */}
                               {q.context && (
-                                <div className="text-lg font-jp mb-3 leading-relaxed text-slate-800" dangerouslySetInnerHTML={{ __html: q.context }} />
+                                <div className="text-lg font-jp mb-3 leading-relaxed text-slate-800">
+                                  <FuriganaText text={q.context} />
+                                </div>
                               )}
 
                               {/* Question */}
                               <h3 className="text-lg font-medium text-slate-900 font-jp mb-2">
-                                {q.question}
+                                <FuriganaText text={q.question} />
                               </h3>
 
                               {/* Image */}
@@ -272,7 +275,9 @@ const Result: React.FC<ResultProps> = ({ result, exam, onRetake, onHome }) => {
                                     {isCorrectOption && <CheckCircle size={12} className="text-white" />}
                                     {isSelected && !isCorrect && <XCircle size={12} className="text-white" />}
                                   </div>
-                                  <span className="text-base font-jp text-slate-700">{opt.text}</span>
+                                  <span className="text-base font-jp text-slate-700">
+                                    <FuriganaText text={opt.text} />
+                                  </span>
                                 </div>
                               );
                             })}
@@ -291,7 +296,9 @@ const Result: React.FC<ResultProps> = ({ result, exam, onRetake, onHome }) => {
                             {isExpanded && (
                               <div className="mt-4 p-4 bg-slate-50 rounded-lg border border-slate-200 text-slate-700 animate-in fade-in slide-in-from-top-2 duration-200">
                                 <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Explanation</h4>
-                                <p className="font-jp leading-relaxed">{q.explanation || "No explanation provided."}</p>
+                                <div className="font-jp leading-relaxed">
+                                  <FuriganaText text={q.explanation || "No explanation provided."} />
+                                </div>
                               </div>
                             )}
                           </div>
